@@ -219,13 +219,12 @@ fn month_info_update<E: Env + 'static>(
                 None
             };
 
-            let date = NaiveDate::from_ymd_opt(*year, *month, 1).unwrap_or_default();
-            let first_of_next_month = date_from_month_offset(date, 1);
-
+            let first_day_of_month = NaiveDate::from_ymd_opt(*year, *month, 1).unwrap_or_default();
+            let first_of_next_month = first_day_of_month + Months::new(1);
             let last_day_of_month = first_of_next_month.pred_opt().unwrap_or_default();
+
             let days = last_day_of_month.day();
 
-            let first_day_of_month = date.with_day(1).unwrap_or_default();
             let first_weekday = first_day_of_month.weekday().num_days_from_monday();
 
             MonthInfo {
