@@ -3,7 +3,7 @@ use itertools::Itertools;
 use serde::Serialize;
 use stremio_core::{
     deep_links::{CalendarDeepLinks, CalendarItemDeepLinks},
-    models::calendar::{YearMonthDate, FullDate, MonthInfo, Selected},
+    models::calendar::{FullDate, MonthInfo, Selected, YearMonthDate},
     types::resource::SeriesInfo,
 };
 use url::Url;

@@ -70,11 +70,7 @@ pub struct FullDate {
 
 impl FullDate {
     pub fn new(year: Year, month: Month, day: Day) -> Self {
-        Self {
-            day,
-            month,
-            year,
-        }
+        Self { day, month, year }
     }
 }
 
