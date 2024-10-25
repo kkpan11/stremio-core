@@ -244,8 +244,8 @@ fn selectable_update(selectable: &mut Selectable, selected: &Option<Selected>) -
         .map(|Selected { month, year, .. }| {
             let date = NaiveDate::from_ymd_opt(*year, *month, 1).unwrap_or_default();
 
-            let prev_date = date_from_month_offset(date, -1);
-            let next_date = date_from_month_offset(date, 1);
+            let prev_date = date - Months::new(1);
+            let next_date = date + Months::new(1);
 
             Selectable {
                 prev: Date::from(prev_date),
