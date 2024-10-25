@@ -165,31 +165,6 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Calendar {
     }
 }
 
-fn date_from_month_offset(date: NaiveDate, offset: i32) -> NaiveDate {
-    let mut year = date.year();
-    let mut month = date.month() as i32 + offset;
-    let day = date.day();
-
-    while month > 12 {
-        month -= 12;
-        year += 1;
-    }
-
-    while month < 1 {
-        month += 12;
-        year -= 1;
-    }
-
-    NaiveDate::from_ymd_opt(year, month as u32, day).unwrap_or_else(|| {
-        NaiveDate::from_ymd_opt(
-            year,
-            month as u32,
-            date.with_day(0).unwrap_or_default().day(),
-        )
-        .unwrap_or_default()
-    })
-}
-
 fn selected_update<E: Env + 'static>(
     selected: &mut Option<Selected>,
     next_selected: &Option<Selected>,
