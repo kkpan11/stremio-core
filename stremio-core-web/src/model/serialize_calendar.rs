@@ -3,7 +3,7 @@ use itertools::Itertools;
 use serde::Serialize;
 use stremio_core::{
     deep_links::{CalendarDeepLinks, CalendarItemDeepLinks},
-    models::calendar::{Date, MonthInfo, Selected},
+    models::calendar::{YearMonthDate, FullDate, MonthInfo, Selected},
     types::resource::SeriesInfo,
 };
 use url::Url;
@@ -29,7 +29,7 @@ mod model {
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct CalendarItem<'a> {
-        pub date: &'a Date,
+        pub date: &'a FullDate,
         pub items: Vec<CalendarContentItem<'a>>,
     }
 
@@ -37,7 +37,7 @@ mod model {
     #[serde(rename_all = "camelCase")]
     pub struct SelectableDate<'a> {
         #[serde(flatten)]
-        pub date: &'a Date,
+        pub date: &'a YearMonthDate,
         pub deep_links: CalendarDeepLinks,
     }
 

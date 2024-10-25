@@ -6,7 +6,7 @@ use url::Url;
 use crate::{
     constants::URI_COMPONENT_ENCODE_SET,
     models::{
-        calendar::Date, installed_addons_with_filters::InstalledAddonsRequest,
+        calendar::YearMonthDate, installed_addons_with_filters::InstalledAddonsRequest,
         library_with_filters::LibraryRequest,
     },
     types::{
@@ -626,8 +626,8 @@ pub struct CalendarDeepLinks {
     pub calendar: String,
 }
 
-impl From<&Date> for CalendarDeepLinks {
-    fn from(date: &Date) -> Self {
+impl From<&YearMonthDate> for CalendarDeepLinks {
+    fn from(date: &YearMonthDate) -> Self {
         Self {
             calendar: format!("stremio:///calendar/{}/{}", date.year, date.month),
         }

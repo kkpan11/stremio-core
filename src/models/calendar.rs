@@ -29,39 +29,30 @@ pub type Month = u32;
 pub type Year = i32;
 
 #[derive(Default, Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
-pub struct Date {
-    pub day: Option<Day>,
+pub struct YearMonthDate {
     pub month: Month,
     pub year: Year,
 }
 
-impl Date {
-    pub fn new(year: Year, month: Month, day: Option<Day>) -> Self {
-        Self { day, month, year }
-    }
-}
-
-impl From<NaiveDate> for Date {
+impl From<NaiveDate> for YearMonthDate {
     fn from(value: NaiveDate) -> Self {
         Self {
-            day: None,
             month: value.month(),
             year: value.year(),
         }
     }
 }
 
-impl From<DateTime<Utc>> for Date {
+impl From<DateTime<Utc>> for YearMonthDate {
     fn from(value: DateTime<Utc>) -> Self {
         Self {
-            day: Some(value.day()),
             month: value.month(),
             year: value.year(),
         }
     }
 }
 
-impl From<Option<DateTime<Utc>>> for Date {
+impl From<Option<DateTime<Utc>>> for YearMonthDate {
     fn from(value: Option<DateTime<Utc>>) -> Self {
         match value {
             Some(date) => Self::from(date),
@@ -70,12 +61,29 @@ impl From<Option<DateTime<Utc>>> for Date {
     }
 }
 
-pub type Selected = Date;
+#[derive(Default, Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]
+pub struct FullDate {
+    pub day: Day,
+    pub month: Month,
+    pub year: Year,
+}
+
+impl FullDate {
+    pub fn new(year: Year, month: Month, day: Day) -> Self {
+        Self {
+            day,
+            month,
+            year,
+        }
+    }
+}
+
+pub type Selected = YearMonthDate;
 
 #[derive(Default, Clone, PartialEq, Eq, Serialize, Debug)]
 pub struct Selectable {
-    pub prev: Date,
-    pub next: Date,
+    pub prev: YearMonthDate,
+    pub next: YearMonthDate,
 }
 
 #[derive(Clone, PartialEq, Eq, Serialize, Debug)]
@@ -87,7 +95,7 @@ pub struct ContentItem {
 
 #[derive(Clone, PartialEq, Eq, Serialize, Debug)]
 pub struct Item {
-    pub date: Date,
+    pub date: FullDate,
     pub items: Vec<ContentItem>,
 }
 
@@ -174,7 +182,7 @@ fn selected_update<E: Env + 'static>(
     let updated_selected = next_selected
         .as_ref()
         .map(|next_selected| next_selected.to_owned())
-        .or(Some(Date::from(current_date)));
+        .or(Some(YearMonthDate::from(current_date)));
 
     eq_update(selected, updated_selected)
 }
@@ -223,8 +231,8 @@ fn selectable_update(selectable: &mut Selectable, selected: &Option<Selected>) -
             let next_date = date + Months::new(1);
 
             Selectable {
-                prev: Date::from(prev_date),
-                next: Date::from(next_date),
+                prev: YearMonthDate::from(prev_date),
+                next: YearMonthDate::from(next_date),
             }
         })
         .unwrap_or_default();
@@ -243,7 +251,7 @@ fn items_update(
         .map(|Selected { month, year, .. }| {
             (1..=month_info.days)
                 .map(|day| Item {
-                    date: Date::new(*year, *month, Some(day)),
+                    date: FullDate::new(*year, *month, day),
                     items: meta_items
                         .iter()
                         .flat_map(|ResourceLoadable { content, .. }| match content {
