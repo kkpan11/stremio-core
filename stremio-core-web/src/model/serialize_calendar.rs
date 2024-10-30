@@ -92,6 +92,7 @@ pub fn serialize_calendar(calendar: &stremio_core::models::calendar::Calendar) -
                         deep_links: CalendarItemDeepLinks::from((&item.meta_item, &item.video))
                             .into_web_deep_links(),
                     })
+                    .unique_by(|item| item.id)
                     .collect_vec(),
             })
             .collect_vec(),
