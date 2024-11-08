@@ -1,23 +1,32 @@
-use crate::constants::LIBRARY_COLLECTION_NAME;
-use crate::models::common::{DescriptorLoadable, Loadable, ResourceLoadable};
-use crate::models::ctx::{
-    update_events, update_library, update_notifications, update_profile, update_search_history,
-    update_streaming_server_urls, update_streams, update_trakt_addon, CtxError,
+use crate::{
+    constants::LIBRARY_COLLECTION_NAME,
+    models::{
+        common::{DescriptorLoadable, Loadable, ResourceLoadable},
+        ctx::{
+            update_events, update_library, update_notifications, update_profile,
+            update_search_history, update_streaming_server_urls, update_streams,
+            update_trakt_addon, CtxError, OtherError,
+        },
+    },
+    runtime::{
+        msg::{Action, ActionCtx, CtxAuthResponse, Event, Internal, Msg},
+        Effect, EffectFuture, Effects, Env, EnvFutureExt, Update,
+    },
+    types::{
+        api::{
+            fetch_api, APIRequest, APIResult, AuthRequest, AuthResponse, CollectionResponse,
+            DatastoreCommand, DatastoreRequest, LibraryItemsResponse, SuccessResponse,
+        },
+        events::{DismissedEventsBucket, Events},
+        library::LibraryBucket,
+        notifications::NotificationsBucket,
+        profile::{Auth, AuthKey, Profile},
+        resource::MetaItem,
+        search_history::SearchHistoryBucket,
+        server_urls::ServerUrlsBucket,
+        streams::StreamsBucket,
+    },
 };
-use crate::runtime::msg::{Action, ActionCtx, CtxAuthResponse, Event, Internal, Msg};
-use crate::runtime::{Effect, EffectFuture, Effects, Env, EnvFutureExt, Update};
-use crate::types::api::{
-    fetch_api, APIRequest, APIResult, AuthRequest, AuthResponse, CollectionResponse,
-    DatastoreCommand, DatastoreRequest, LibraryItemsResponse, SuccessResponse,
-};
-use crate::types::events::{DismissedEventsBucket, Events};
-use crate::types::library::LibraryBucket;
-use crate::types::notifications::NotificationsBucket;
-use crate::types::profile::{Auth, AuthKey, Profile};
-use crate::types::resource::MetaItem;
-use crate::types::search_history::SearchHistoryBucket;
-use crate::types::server_urls::ServerUrlsBucket;
-use crate::types::streams::StreamsBucket;
 
 #[cfg(test)]
 use derivative::Derivative;
@@ -26,8 +35,6 @@ use futures::{future, FutureExt, TryFutureExt};
 use serde::Serialize;
 
 use tracing::{error, trace};
-
-use super::OtherError;
 
 #[derive(Default, PartialEq, Eq, Serialize, Clone, Debug)]
 pub enum CtxStatus {
@@ -61,7 +68,12 @@ pub struct Ctx {
     /// Used only for loading the Descriptor and then the descriptor will be discarded
     pub trakt_addon: Option<DescriptorLoadable>,
     #[serde(skip)]
+    /// The catalogs response from all addons that support the `lastVideosIds`
+    /// ([`LAST_VIDEOS_IDS_EXTRA_PROP`]) resource
+    ///
+    /// [`LAST_VIDEOS_IDS_EXTRA_PROP`]: static@crate::constants::LAST_VIDEOS_IDS_EXTRA_PROP
     pub notification_catalogs: Vec<ResourceLoadable<Vec<MetaItem>>>,
+
     pub events: Events,
 }
 
@@ -72,6 +84,7 @@ impl Ctx {
         streams: StreamsBucket,
         streaming_server_urls: ServerUrlsBucket,
         notifications: NotificationsBucket,
+
         search_history: SearchHistoryBucket,
         dismissed_events: DismissedEventsBucket,
     ) -> Self {

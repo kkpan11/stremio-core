@@ -14,6 +14,7 @@ pub const STREAMS_STORAGE_KEY: &str = "streams";
 pub const SEARCH_HISTORY_STORAGE_KEY: &str = "search_history";
 pub const STREAMING_SERVER_URLS_STORAGE_KEY: &str = "streaming_server_urls";
 pub const NOTIFICATIONS_STORAGE_KEY: &str = "notifications";
+pub const CALENDAR_STORAGE_KEY: &str = "calendar";
 pub const DISMISSED_EVENTS_STORAGE_KEY: &str = "dismissed_events";
 pub const LIBRARY_COLLECTION_NAME: &str = "libraryItem";
 pub const SEARCH_EXTRA_NAME: &str = "search";
@@ -29,6 +30,8 @@ pub const CATALOG_PAGE_SIZE: usize = 100;
 pub const CATALOG_PREVIEW_SIZE: usize = 100;
 pub const LIBRARY_RECENT_COUNT: usize = 200;
 pub const NOTIFICATION_ITEMS_COUNT: usize = 100;
+/// Maximum calendar items to fetch from `calendarIds` resource
+pub const CALENDAR_ITEMS_COUNT: usize = 100;
 
 /// A `LibraryItem` is considered watched once we've watched more than the `duration * threshold`:
 ///
@@ -40,7 +43,7 @@ pub const SCHEMA_VERSION: u32 = 15;
 pub const IMDB_LINK_CATEGORY: &str = "imdb";
 pub const GENRES_LINK_CATEGORY: &str = "Genres";
 pub const CINEMETA_TOP_CATALOG_ID: &str = "top";
-/// Only found in Cinemeta catalogs, i.e. [`CINEMETA_CATALOGS_URL`](struct@CINEMETA_CATALOGS_URL)
+/// Only found in Cinemeta catalogs, i.e. [`CINEMETA_CATALOGS_URL`]
 pub const CINEMETA_FEED_CATALOG_ID: &str = "feed.json";
 pub const IMDB_TITLE_PATH: &str = "title";
 pub const YOUTUBE_ADDON_ID_PREFIX: &str = "yt_id:";
@@ -106,6 +109,12 @@ pub static VIDEO_FILENAME_EXTRA_PROP: Lazy<ExtraProp> = Lazy::new(|| ExtraProp {
 });
 pub static LAST_VIDEOS_IDS_EXTRA_PROP: Lazy<ExtraProp> = Lazy::new(|| ExtraProp {
     name: "lastVideosIds".to_owned(),
+    is_required: false,
+    options: vec![],
+    options_limit: OptionsLimit(1),
+});
+pub static CALENDAR_IDS_EXTRA_PROP: Lazy<ExtraProp> = Lazy::new(|| ExtraProp {
+    name: "calendarVideosIds".to_owned(),
     is_required: false,
     options: vec![],
     options_limit: OptionsLimit(1),
