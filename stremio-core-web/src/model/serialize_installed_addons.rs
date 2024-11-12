@@ -6,8 +6,13 @@ use {
 
 pub use model::*;
 mod model {
-    use stremio_core::types::addon::{DescriptorFlags, ManifestPreview};
+    use serde::Serialize;
     use url::Url;
+
+    use stremio_core::{
+        models::installed_addons_with_filters::Selected,
+        types::addon::{DescriptorFlags, ManifestPreview},
+    };
 
     use super::*;
 
