@@ -1,12 +1,10 @@
-use crate::model::deep_links_ext::DeepLinksExt;
-use gloo_utils::format::JsValueSerdeExt;
-use serde::Serialize;
-use stremio_core::deep_links::AddonsDeepLinks;
-use stremio_core::models::installed_addons_with_filters::{
-    InstalledAddonsRequest, InstalledAddonsWithFilters, Selected,
+#[cfg(feature = "wasm")]
+use {
+    crate::model::deep_links_ext::DeepLinksExt, gloo_utils::format::JsValueSerdeExt,
+    stremio_core::deep_links::AddonsDeepLinks, wasm_bindgen::JsValue,
 };
-use wasm_bindgen::JsValue;
 
+pub use model::*;
 mod model {
     use stremio_core::types::addon::{DescriptorFlags, ManifestPreview};
     use url::Url;
@@ -54,7 +52,10 @@ mod model {
     }
 }
 
-pub fn serialize_installed_addons(installed_addons: &InstalledAddonsWithFilters) -> JsValue {
+#[cfg(feature = "wasm")]
+pub fn serialize_installed_addons(
+    installed_addons: &stremio_core::models::installed_addons_with_filters::InstalledAddonsWithFilters,
+) -> JsValue {
     <JsValue as JsValueSerdeExt>::from_serde(&model::InstalledAddonsWithFilters {
         selected: &installed_addons.selected,
         selectable: model::Selectable {
@@ -72,8 +73,12 @@ pub fn serialize_installed_addons(installed_addons: &InstalledAddonsWithFilters)
             catalogs: vec![model::SelectableCatalog {
                 name: "Installed".to_owned(),
                 selected: installed_addons.selected.is_some(),
-                deep_links: AddonsDeepLinks::from(&InstalledAddonsRequest { r#type: None })
-                    .into_web_deep_links(),
+                deep_links: AddonsDeepLinks::from(
+                    &stremio_core::models::installed_addons_with_filters::InstalledAddonsRequest {
+                        r#type: None,
+                    },
+                )
+                .into_web_deep_links(),
             }],
         },
         catalog: installed_addons
