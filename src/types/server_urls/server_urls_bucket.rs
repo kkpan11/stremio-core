@@ -8,7 +8,7 @@ use url::Url;
 pub struct ServerUrlsBucket {
     /// User ID
     pub uid: UID,
-    /// HashMap where key is `Url`, value is `DateTime<Utc>`
+    /// A map of the the server Url as a key and the modified/added datetime of that particular url.
     pub items: HashMap<Url, DateTime<Utc>>,
 }
 
