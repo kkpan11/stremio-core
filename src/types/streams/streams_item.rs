@@ -32,6 +32,12 @@ pub struct StreamItemState {
     /// In milliseconds
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subtitle_delay: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// Subtitles size, platform dependent units
+    pub subtitle_size: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// Vertical offset of the subtitles, platform dependent units
+    pub subtitle_offset: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub audio_track: Option<AudioTrack>,
     /// In milliseconds
