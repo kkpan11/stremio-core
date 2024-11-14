@@ -25,9 +25,9 @@ use stremio_core::{
     },
     runtime::Effects,
     types::{
-        addon::DescriptorPreview, api::LinkAuthKey, events::DismissedEventsBucket,
-        library::LibraryBucket, notifications::NotificationsBucket, profile::Profile,
-        resource::MetaItemPreview, search_history::SearchHistoryBucket, streams::StreamsBucket,
+        addon::Descriptor, api::LinkAuthKey, events::DismissedEventsBucket, library::LibraryBucket,
+        notifications::NotificationsBucket, profile::Profile, resource::MetaItemPreview,
+        search_history::SearchHistoryBucket, streams::StreamsBucket,
     },
     Model,
 };
@@ -52,7 +52,7 @@ pub struct WebModel {
     /// Pre-loaded results for local search
     pub local_search: LocalSearch,
     pub meta_details: MetaDetails,
-    pub remote_addons: CatalogWithFilters<DescriptorPreview>,
+    pub remote_addons: CatalogWithFilters<Descriptor>,
     pub installed_addons: InstalledAddonsWithFilters,
     pub addon_details: AddonDetails,
     pub streaming_server: StreamingServer,
@@ -76,7 +76,7 @@ impl WebModel {
         let (continue_watching, continue_watching_effects) =
             LibraryWithFilters::<ContinueWatchingFilter>::new(&library, &notifications);
         let (remote_addons, remote_addons_effects) =
-            CatalogWithFilters::<DescriptorPreview>::new(&profile);
+            CatalogWithFilters::<Descriptor>::new(&profile);
         let (installed_addons, installed_addons_effects) =
             InstalledAddonsWithFilters::new(&profile);
         let (streaming_server, streaming_server_effects) = StreamingServer::new::<WebEnv>(&profile);

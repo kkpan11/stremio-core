@@ -3,7 +3,7 @@ use serde::{de::Deserializer, Deserialize, Serialize};
 use serde_with::{serde_as, VecSkipError};
 
 use crate::types::{
-    addon::DescriptorPreview,
+    addon::Descriptor,
     resource::{MetaItem, MetaItemPreview, Stream, Subtitles},
 };
 
@@ -118,7 +118,7 @@ pub enum ResourceResponse {
         subtitles: Vec<Subtitles>,
     },
     Addons {
-        addons: Vec<DescriptorPreview>,
+        addons: Vec<Descriptor>,
     },
 }
 
