@@ -7,16 +7,25 @@ use {
 pub use model::*;
 mod model {
     use serde::Serialize;
+    use url::Url;
 
     use stremio_core::{
-        deep_links::AddonsDeepLinks, models::installed_addons_with_filters::Selected,
+        models::installed_addons_with_filters::Selected,
+        types::addon::{DescriptorFlags, ManifestPreview},
     };
 
+    use super::*;
+
+    /// Descriptor Preview serializing the [`ManifestPreview`] and
+    /// [`DescriptorFlags`] of an addon.
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
-    pub struct DescriptorPreview<'a> {
-        #[serde(flatten)]
-        pub addon: &'a stremio_core::types::addon::DescriptorPreview,
+    pub struct DescriptorPreview {
+        pub manifest: ManifestPreview,
+        pub transport_url: Url,
+        #[serde(default)]
+        pub flags: DescriptorFlags,
+        /// All addons in this model are installed by default!
         pub installed: bool,
     }
     #[derive(Serialize)]
@@ -44,7 +53,7 @@ mod model {
     pub struct InstalledAddonsWithFilters<'a> {
         pub selected: &'a Option<Selected>,
         pub selectable: Selectable<'a>,
-        pub catalog: Vec<DescriptorPreview<'a>>,
+        pub catalog: Vec<DescriptorPreview>,
     }
 }
 
@@ -81,7 +90,9 @@ pub fn serialize_installed_addons(
             .catalog
             .iter()
             .map(|addon| model::DescriptorPreview {
-                addon,
+                manifest: (&addon.manifest).into(),
+                transport_url: addon.transport_url.clone(),
+                flags: addon.flags.clone(),
                 installed: true,
             })
             .collect(),
