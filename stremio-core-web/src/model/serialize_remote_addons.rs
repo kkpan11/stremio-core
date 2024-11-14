@@ -6,7 +6,7 @@ use stremio_core::deep_links::AddonsDeepLinks;
 use stremio_core::models::catalog_with_filters::{CatalogWithFilters, Selected};
 use stremio_core::models::common::Loadable;
 use stremio_core::models::ctx::Ctx;
-use stremio_core::types::addon::DescriptorPreview;
+use stremio_core::types::addon::Descriptor;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::JsValue;
 
@@ -35,15 +35,15 @@ mod model {
     }
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
-    pub struct DescriptorPreview<'a> {
+    pub struct Descriptor<'a> {
         #[serde(flatten)]
-        pub addon: &'a stremio_core::types::addon::DescriptorPreview,
+        pub addon: &'a stremio_core::types::addon::Descriptor,
         pub installed: bool,
     }
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct ResourceLoadable<'a> {
-        pub content: Loadable<Vec<DescriptorPreview<'a>>, String>,
+        pub content: Loadable<Vec<Descriptor<'a>>, String>,
     }
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -55,7 +55,7 @@ mod model {
 }
 #[cfg(feature = "wasm")]
 pub fn serialize_remote_addons(
-    remote_addons: &CatalogWithFilters<DescriptorPreview>,
+    remote_addons: &CatalogWithFilters<Descriptor>,
     ctx: &Ctx,
 ) -> JsValue {
     <JsValue as JsValueSerdeExt>::from_serde(&model::CatalogWithFilters {
@@ -93,7 +93,7 @@ pub fn serialize_remote_addons(
                     Some(Loadable::Ready(addons)) => Loadable::Ready(
                         addons
                             .iter()
-                            .map(|addon| model::DescriptorPreview {
+                            .map(|addon| model::Descriptor {
                                 addon,
                                 installed: ctx
                                     .profile
