@@ -156,11 +156,23 @@ pub fn serialize_player<E: stremio_core::runtime::Env + 'static>(
                                 .unwrap_or_default(),
                             // only the currently playing video can have the progress
                             // as we keep that information in the LibraryItem
-                            progress: ctx
-                                .library
-                                .items
-                                .get(&meta_item.preview.id)
-                                .map(|library_item| library_item.progress()),
+                            progress: ctx.library.items.get(&meta_item.preview.id).and_then(
+                                |library_item| {
+                                    // only set up the progress for the current video
+                                    // for series, the selected stream path ID should be the video id!
+                                    if player
+                                        .selected
+                                        .as_ref()
+                                        .and_then(|selected| selected.stream_request.as_ref())
+                                        .map(|stream_request| stream_request.path.id == video.id)
+                                        .unwrap_or_default()
+                                    {
+                                        Some(library_item.progress())
+                                    } else {
+                                        None
+                                    }
+                                },
+                            ),
                             scheduled: meta_item.preview.behavior_hints.has_scheduled_videos,
                             deep_links: VideoDeepLinks::from((
                                 video,
