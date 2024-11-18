@@ -107,7 +107,10 @@ impl WebModel {
             installed_addons,
             addon_details: Default::default(),
             streaming_server,
-            player: Default::default(),
+            player: Player {
+                collect_seek_logs: true,
+                ..Default::default()
+            },
         };
         (
             model,
