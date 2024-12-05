@@ -649,12 +649,12 @@ mod test {
         },
         runtime::{
             env::{
-                migrate_storage_schema_to_v16,
                 migrate_storage_schema_to_v10, migrate_storage_schema_to_v11,
                 migrate_storage_schema_to_v12, migrate_storage_schema_to_v13,
                 migrate_storage_schema_to_v14, migrate_storage_schema_to_v15,
-                migrate_storage_schema_to_v6, migrate_storage_schema_to_v7,
-                migrate_storage_schema_to_v8, migrate_storage_schema_to_v9,
+                migrate_storage_schema_to_v16, migrate_storage_schema_to_v6,
+                migrate_storage_schema_to_v7, migrate_storage_schema_to_v8,
+                migrate_storage_schema_to_v9,
             },
             Env,
         },
