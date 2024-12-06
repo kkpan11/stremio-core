@@ -65,9 +65,12 @@ mod model {
     pub struct Subtitles<'a> {
         #[serde(flatten)]
         pub subtitles: &'a stremio_core::types::resource::Subtitles,
+        // overrides the id of the subtitles in a format that avoids
+        // conflicts with other subtitle ids
         pub id: String,
         pub origin: &'a String,
     }
+
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct LibraryItemState<'a> {
@@ -206,6 +209,7 @@ pub fn serialize_player<E: stremio_core::runtime::Env + 'static>(
                 subtitles
                     .iter()
                     .enumerate()
+                    // renames the subtitle id to avoid conflicts
                     .map(move |(position, subtitles)| model::Subtitles {
                         subtitles,
                         id: format!("{}_{}", addon.transport_url, position),
