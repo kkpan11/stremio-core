@@ -80,7 +80,7 @@ impl Default for Settings {
             surround_sound: false,
             streaming_server_warning_dismissed: None,
             server_in_foreground: false,
-            send_crash_reports: false,
+            send_crash_reports: true,
         }
     }
 }

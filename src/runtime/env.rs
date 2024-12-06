@@ -628,7 +628,7 @@ fn migrate_storage_schema_to_v16<E: Env>() -> TryEnvFuture<()> {
                     );
                     settings.insert(
                         "sendCrashReports".to_owned(),
-                        serde_json::Value::Bool(false),
+                        serde_json::Value::Bool(true),
                     );
                     E::set_storage(PROFILE_STORAGE_KEY, Some(&profile))
                 }
@@ -1196,7 +1196,7 @@ mod test {
         let migrated_profile = json!({
             "settings": {
                 "serverInForeground": false,
-                "sendCrashReports": false
+                "sendCrashReports": true
             }
         });
 

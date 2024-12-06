@@ -438,7 +438,7 @@ impl DefaultTokens for Settings {
             Token::Str("serverInForeground"),
             Token::Bool(false),
             Token::Str("sendCrashReports"),
-            Token::Bool(false),
+            Token::Bool(true),
             Token::StructEnd,
         ]
     }

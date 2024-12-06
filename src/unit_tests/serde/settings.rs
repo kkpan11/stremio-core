@@ -37,7 +37,7 @@ fn settings() {
                 Utc.with_ymd_and_hms(2021, 1, 1, 0, 0, 0).unwrap(),
             ),
             server_in_foreground: false,
-            send_crash_reports: false,
+            send_crash_reports: true,
         },
         &[
             Token::Struct {
@@ -110,7 +110,7 @@ fn settings() {
             Token::Str("serverInForeground"),
             Token::Bool(false),
             Token::Str("sendCrashReports"),
-            Token::Bool(false),
+            Token::Bool(true),
             Token::StructEnd,
         ],
     );
@@ -183,7 +183,7 @@ fn settings_de() {
             Token::Str("serverInForeground"),
             Token::Bool(false),
             Token::Str("sendCrashReports"),
-            Token::Bool(false),
+            Token::Bool(true),
             Token::StructEnd,
         ],
     );
