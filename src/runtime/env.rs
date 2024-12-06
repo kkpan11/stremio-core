@@ -626,10 +626,7 @@ fn migrate_storage_schema_to_v16<E: Env>() -> TryEnvFuture<()> {
                         "serverInForeground".to_owned(),
                         serde_json::Value::Bool(false),
                     );
-                    settings.insert(
-                        "sendCrashReports".to_owned(),
-                        serde_json::Value::Bool(true),
-                    );
+                    settings.insert("sendCrashReports".to_owned(), serde_json::Value::Bool(true));
                     E::set_storage(PROFILE_STORAGE_KEY, Some(&profile))
                 }
                 _ => E::set_storage::<()>(PROFILE_STORAGE_KEY, None),
