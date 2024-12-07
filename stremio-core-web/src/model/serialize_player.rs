@@ -146,16 +146,10 @@ pub fn serialize_player<E: stremio_core::runtime::Env + 'static>(
                             video,
                             upcoming: meta_item.preview.behavior_hints.has_scheduled_videos
                                 && video.released > Some(E::now()),
-                            watched: ctx
-                                .library
-                                .items
-                                .get(&meta_item.preview.id)
-                                .map(|library_item| {
-                                    library_item
-                                        .state
-                                        .watched_bitfield(&meta_item.videos)
-                                        .get_video(&video.id)
-                                })
+                            watched: player
+                                .watched
+                                .as_ref()
+                                .map(|watched| watched.get_video(&video.id))
                                 .unwrap_or_default(),
                             // only the currently playing video can have the progress
                             // as we keep that information in the LibraryItem

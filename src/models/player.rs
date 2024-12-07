@@ -658,6 +658,31 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                 }))
                 .unchanged()
             }
+            Msg::Action(Action::Player(ActionPlayer::MarkVideoAsWatched(video, is_watched))) => {
+                match (&self.library_item, &self.watched) {
+                    (Some(library_item), Some(watched)) => {
+                        let mut library_item = library_item.to_owned();
+                        library_item.mark_video_as_watched::<E>(watched, video, *is_watched);
+
+                        Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(library_item)))
+                            .unchanged()
+                    }
+                    _ => Effects::none().unchanged(),
+                }
+            }
+            Msg::Internal(Internal::LibraryChanged(_)) => {
+                let library_item_effects = library_item_update::<E>(
+                    &mut self.library_item,
+                    &self.selected,
+                    &self.meta_item,
+                    &ctx.library,
+                );
+
+                let watched_effects =
+                    watched_update(&mut self.watched, &self.meta_item, &self.library_item);
+
+                library_item_effects.join(watched_effects)
+            }
             Msg::Internal(Internal::StreamsChanged(_)) => {
                 stream_state_update(&mut self.stream_state, &self.selected, &ctx.streams)
             }
@@ -1052,10 +1077,7 @@ fn library_item_update<E: Env + 'static>(
             meta_request: Some(meta_request),
             ..
         }) => {
-            let library_item = library_item
-                .as_ref()
-                .filter(|library_item| library_item.id == meta_request.path.id)
-                .or_else(|| library.items.get(&meta_request.path.id));
+            let library_item = library.items.get(&meta_request.path.id);
             let meta_item = meta_item.as_ref().and_then(|meta_item| match meta_item {
                 ResourceLoadable {
                     content: Some(Loadable::Ready(meta_item)),
@@ -1077,28 +1099,7 @@ fn library_item_update<E: Env + 'static>(
         }
         _ => None,
     };
-    if *library_item != next_library_item {
-        let update_library_item_effects = match &library_item {
-            Some(library_item) => Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(
-                library_item.to_owned(),
-            )))
-            .unchanged(),
-            _ => Effects::none().unchanged(),
-        };
-        let update_next_library_item_effects = match &next_library_item {
-            Some(next_library_item) => Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(
-                next_library_item.to_owned(),
-            )))
-            .unchanged(),
-            _ => Effects::none().unchanged(),
-        };
-        *library_item = next_library_item;
-        Effects::none()
-            .join(update_library_item_effects)
-            .join(update_next_library_item_effects)
-    } else {
-        Effects::none().unchanged()
-    }
+    eq_update(library_item, next_library_item)
 }
 
 fn watched_update(

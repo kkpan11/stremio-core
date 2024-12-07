@@ -191,6 +191,12 @@ pub enum ActionPlayer {
     /// - We've watched a movie to the last second
     /// - We've watched a movie series to the last second
     Ended,
+    /// Marks the given [`Video`] of the [`LibraryItem`] as watched.
+    ///
+    /// Applicable only when you have a multi-video (e.g. movie series) item.
+    ///
+    /// [`LibraryItem`]: crate::types::library::LibraryItem
+    MarkVideoAsWatched(Video, bool),
 }
 
 #[derive(Clone, Deserialize, Debug)]
