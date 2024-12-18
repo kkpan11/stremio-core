@@ -34,6 +34,7 @@ use crate::{
 pub enum ActionCtx {
     Authenticate(AuthRequest),
     Logout,
+    DeleteAccount(String),
     InstallAddon(Descriptor),
     InstallTraktAddon,
     LogoutTrakt,

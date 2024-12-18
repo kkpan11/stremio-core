@@ -30,6 +30,14 @@ pub fn update_profile<E: Env + 'static>(
                 Effects::none().unchanged()
             }
         }
+        Msg::Action(Action::Ctx(ActionCtx::DeleteAccount(password))) => match &profile.auth {
+            Some(_) => Effects::one(delete_account::<E>(password)).unchanged(),
+            _ => Effects::msg(Msg::Event(Event::Error {
+                error: CtxError::from(OtherError::UserNotLoggedIn),
+                source: Box::new(Event::UserAccountDeleted { uid: profile.uid() }),
+            }))
+            .unchanged(),
+        },
         Msg::Action(Action::Ctx(ActionCtx::PushUserToAPI)) => match &profile.auth {
             Some(Auth { key, user }) => {
                 Effects::one(push_user_to_api::<E>(user.to_owned(), key)).unchanged()
@@ -382,6 +390,14 @@ pub fn update_profile<E: Env + 'static>(
                 }
             }
         }
+        Msg::Internal(Internal::DeleteAccountAPIResult(_, result)) => match result {
+            Ok(_) => Effects::msg(Msg::Internal(Internal::Logout)).unchanged(),
+            Err(error) => Effects::msg(Msg::Event(Event::Error {
+                error: error.to_owned(),
+                source: Box::new(Event::UserAccountDeleted { uid: profile.uid() }),
+            }))
+            .unchanged(),
+        },
         _ => Effects::none().unchanged(),
     }
 }
@@ -486,6 +502,23 @@ fn push_profile_to_storage<E: Env + 'static>(profile: &Profile) -> Effect {
                     source: Box::new(Event::ProfilePushedToStorage { uid }),
                 })
             }))
+            .boxed_env(),
+    )
+    .into()
+}
+
+fn delete_account<E: Env + 'static>(password: &String) -> Effect {
+    let request = APIRequest::DeleteAccount {
+        password: password.to_owned(),
+    };
+    EffectFuture::Concurrent(
+        fetch_api::<E, _, _, _>(&request)
+            .map_err(CtxError::from)
+            .and_then(|result| match result {
+                APIResult::Ok(result) => future::ok(result),
+                APIResult::Err(error) => future::err(CtxError::from(error)),
+            })
+            .map(move |result| Msg::Internal(Internal::DeleteAccountAPIResult(request, result)))
             .boxed_env(),
     )
     .into()
