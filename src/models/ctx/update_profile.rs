@@ -30,8 +30,8 @@ pub fn update_profile<E: Env + 'static>(
                 Effects::none().unchanged()
             }
         }
-        Msg::Action(Action::Ctx(ActionCtx::DeleteAccount(password))) => match &profile.auth {
-            Some(_) => Effects::one(delete_account::<E>(password)).unchanged(),
+        Msg::Action(Action::Ctx(ActionCtx::DeleteAccount(password))) => match profile.auth_key() {
+            Some(auth_key) => Effects::one(delete_account::<E>(auth_key, password)).unchanged(),
             _ => Effects::msg(Msg::Event(Event::Error {
                 error: CtxError::from(OtherError::UserNotLoggedIn),
                 source: Box::new(Event::UserAccountDeleted { uid: profile.uid() }),
@@ -390,7 +390,10 @@ pub fn update_profile<E: Env + 'static>(
                 }
             }
         }
-        Msg::Internal(Internal::DeleteAccountAPIResult(_, result)) => match result {
+        Msg::Internal(Internal::DeleteAccountAPIResult(
+            APIRequest::DeleteAccount { auth_key, .. },
+            result,
+        )) if profile.auth_key() == Some(auth_key) => match result {
             Ok(_) => Effects::msg(Msg::Internal(Internal::Logout)).unchanged(),
             Err(error) => Effects::msg(Msg::Event(Event::Error {
                 error: error.to_owned(),
@@ -507,8 +510,9 @@ fn push_profile_to_storage<E: Env + 'static>(profile: &Profile) -> Effect {
     .into()
 }
 
-fn delete_account<E: Env + 'static>(password: &String) -> Effect {
+fn delete_account<E: Env + 'static>(auth_key: &AuthKey, password: &String) -> Effect {
     let request = APIRequest::DeleteAccount {
+        auth_key: auth_key.to_owned(),
         password: password.to_owned(),
     };
     EffectFuture::Concurrent(

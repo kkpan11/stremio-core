@@ -32,7 +32,7 @@ fn actionctx_delete_account() {
                 url, method, body, ..
             } if url == "https://api.strem.io/api/deleteUser"
                 && method == "POST"
-                && body == "{\"type\":\"DeleteAccount\",\"password\":\"password\"}" =>
+                && body == "{\"type\":\"DeleteAccount\",\"authKey\":\"auth_key\",\"password\":\"password\"}" =>
             {
                 future::ok(
                     Box::new(APIResult::Ok(SuccessResponse { success: True {} }))
@@ -138,7 +138,8 @@ fn actionctx_delete_account() {
         Request {
             url: "https://api.strem.io/api/deleteUser".to_owned(),
             method: "POST".to_owned(),
-            body: "{\"type\":\"DeleteAccount\",\"password\":\"password\"}".to_owned(),
+            body: "{\"type\":\"DeleteAccount\",\"authKey\":\"auth_key\",\"password\":\"password\"}"
+                .to_owned(),
             ..Default::default()
         },
         "Delete account request has been sent"

@@ -51,6 +51,7 @@ pub enum APIRequest {
     },
     #[serde(rename_all = "camelCase")]
     DeleteAccount {
+        auth_key: AuthKey,
         password: String,
     },
     #[serde(rename_all = "camelCase")]
