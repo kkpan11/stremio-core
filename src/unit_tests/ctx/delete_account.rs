@@ -1,18 +1,22 @@
-use crate::constants::PROFILE_STORAGE_KEY;
-use crate::models::ctx::Ctx;
-use crate::runtime::msg::{Action, ActionCtx};
-use crate::runtime::{Env, EnvFutureExt, Runtime, RuntimeAction, TryEnvFuture};
-use crate::types::api::{APIResult, SuccessResponse};
-use crate::types::events::DismissedEventsBucket;
-use crate::types::library::LibraryBucket;
-use crate::types::notifications::NotificationsBucket;
-use crate::types::profile::{Auth, AuthKey, GDPRConsent, Profile, User};
-use crate::types::search_history::SearchHistoryBucket;
-use crate::types::server_urls::ServerUrlsBucket;
-use crate::types::streams::StreamsBucket;
-use crate::types::True;
-use crate::unit_tests::{
-    default_fetch_handler, Request, TestEnv, FETCH_HANDLER, REQUESTS, STORAGE,
+use crate::{
+    constants::PROFILE_STORAGE_KEY,
+    models::ctx::Ctx,
+    runtime::{
+        msg::{Action, ActionCtx},
+        Env, EnvFutureExt, Runtime, RuntimeAction, TryEnvFuture,
+    },
+    types::{
+        api::{APIResult, SuccessResponse},
+        events::DismissedEventsBucket,
+        library::LibraryBucket,
+        notifications::NotificationsBucket,
+        profile::{Auth, AuthKey, GDPRConsent, Profile, User},
+        search_history::SearchHistoryBucket,
+        server_urls::ServerUrlsBucket,
+        streams::StreamsBucket,
+        True,
+    },
+    unit_tests::{default_fetch_handler, Request, TestEnv, FETCH_HANDLER, REQUESTS, STORAGE},
 };
 use futures::future;
 use std::any::Any;
