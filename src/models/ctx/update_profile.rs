@@ -510,7 +510,7 @@ fn push_profile_to_storage<E: Env + 'static>(profile: &Profile) -> Effect {
     .into()
 }
 
-fn delete_account<E: Env + 'static>(auth_key: &AuthKey, password: &String) -> Effect {
+fn delete_account<E: Env + 'static>(auth_key: &AuthKey, password: &str) -> Effect {
     let request = APIRequest::DeleteAccount {
         auth_key: auth_key.to_owned(),
         password: password.to_owned(),
