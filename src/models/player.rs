@@ -218,6 +218,10 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                     &self.meta_item,
                     &ctx.library,
                 );
+
+                let library_item_state_effects =
+                    library_item_state_update(&mut self.library_item, &self.selected);
+
                 let watched_effects =
                     watched_update(&mut self.watched, &self.meta_item, &self.library_item);
 
@@ -280,6 +284,7 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                     .join(update_streams_effects)
                     .join(series_info_effects)
                     .join(library_item_effects)
+                    .join(library_item_state_effects)
                     .join(watched_effects)
                     .join(skip_gaps_effects)
                     .join(intro_outro_update_effects)
@@ -678,10 +683,15 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                     &ctx.library,
                 );
 
+                let library_item_state_effects =
+                    library_item_state_update(&mut self.library_item, &self.selected);
+
                 let watched_effects =
                     watched_update(&mut self.watched, &self.meta_item, &self.library_item);
 
-                library_item_effects.join(watched_effects)
+                library_item_effects
+                    .join(library_item_state_effects)
+                    .join(watched_effects)
             }
             Msg::Internal(Internal::StreamsChanged(_)) => {
                 stream_state_update(&mut self.stream_state, &self.selected, &ctx.streams)
@@ -761,6 +771,10 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                     &self.meta_item,
                     &ctx.library,
                 );
+
+                let library_item_state_effects =
+                    library_item_state_update(&mut self.library_item, &self.selected);
+
                 let watched_effects =
                     watched_update(&mut self.watched, &self.meta_item, &self.library_item);
 
@@ -803,6 +817,7 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                     .join(next_stream_effects)
                     .join(series_info_effects)
                     .join(library_item_effects)
+                    .join(library_item_state_effects)
                     .join(watched_effects)
                     .join(skip_gaps_effects)
             }
@@ -1120,6 +1135,28 @@ fn watched_update(
         })
         .map(|(meta_item, library_item)| library_item.state.watched_bitfield(&meta_item.videos));
     eq_update(watched, next_watched)
+}
+
+fn library_item_state_update(
+    library_item: &mut Option<LibraryItem>,
+    selected: &Option<Selected>,
+) -> Effects {
+    match (library_item, selected) {
+        (Some(library_item), Some(selected)) => {
+            match (&selected.stream_request, &library_item.state.video_id) {
+                (Some(stream_request), Some(state_video_id))
+                    if stream_request.path.id != *state_video_id =>
+                {
+                    library_item.state.time_offset = 0;
+                    Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(
+                        library_item.to_owned(),
+                    )))
+                }
+                _ => Effects::none().unchanged(),
+            }
+        }
+        _ => Effects::none().unchanged(),
+    }
 }
 
 fn subtitles_update<E: Env + 'static>(
