@@ -10,7 +10,7 @@ use crate::{
         events::DismissedEventsBucket,
         library::LibraryBucket,
         notifications::NotificationsBucket,
-        profile::{Auth, AuthKey, GDPRConsent, Profile, User},
+        profile::{Auth, AuthKey, GDPRConsent, Password, Profile, User},
         search_history::SearchHistoryBucket,
         server_urls::ServerUrlsBucket,
         streams::StreamsBucket,
@@ -110,7 +110,7 @@ fn actionctx_delete_account() {
     TestEnv::run(|| {
         runtime.dispatch(RuntimeAction {
             field: None,
-            action: Action::Ctx(ActionCtx::DeleteAccount("password".to_owned())),
+            action: Action::Ctx(ActionCtx::DeleteAccount(Password("password".to_owned()))),
         })
     });
 

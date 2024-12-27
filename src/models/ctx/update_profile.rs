@@ -11,7 +11,7 @@ use crate::types::addon::Descriptor;
 use crate::types::api::{
     fetch_api, APIError, APIRequest, APIResult, CollectionResponse, SuccessResponse,
 };
-use crate::types::profile::{Auth, AuthKey, Profile, Settings, User};
+use crate::types::profile::{Auth, AuthKey, Password, Profile, Settings, User};
 use crate::types::streams::StreamsBucket;
 
 pub fn update_profile<E: Env + 'static>(
@@ -510,7 +510,7 @@ fn push_profile_to_storage<E: Env + 'static>(profile: &Profile) -> Effect {
     .into()
 }
 
-fn delete_account<E: Env + 'static>(auth_key: &AuthKey, password: &str) -> Effect {
+fn delete_account<E: Env + 'static>(auth_key: &AuthKey, password: &Password) -> Effect {
     let request = APIRequest::DeleteAccount {
         auth_key: auth_key.to_owned(),
         password: password.to_owned(),

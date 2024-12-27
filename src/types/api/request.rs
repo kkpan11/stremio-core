@@ -3,7 +3,7 @@ use core::fmt;
 use crate::constants::{API_URL, LINK_API_URL};
 use crate::types::addon::Descriptor;
 use crate::types::library::LibraryItem;
-use crate::types::profile::{AuthKey, GDPRConsent, User};
+use crate::types::profile::{AuthKey, GDPRConsent, Password, User};
 use crate::types::resource::SeriesInfo;
 use chrono::{DateTime, Local};
 #[cfg(test)]
@@ -52,7 +52,7 @@ pub enum APIRequest {
     #[serde(rename_all = "camelCase")]
     DeleteAccount {
         auth_key: AuthKey,
-        password: String,
+        password: Password,
     },
     #[serde(rename_all = "camelCase")]
     AddonCollectionGet {

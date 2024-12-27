@@ -3,6 +3,7 @@ use std::ops::Range;
 use serde::Deserialize;
 use url::Url;
 
+use crate::types::profile::Password;
 use crate::types::streams::StreamItemState;
 use crate::{
     models::{
@@ -34,7 +35,7 @@ use crate::{
 pub enum ActionCtx {
     Authenticate(AuthRequest),
     Logout,
-    DeleteAccount(String),
+    DeleteAccount(Password),
     InstallAddon(Descriptor),
     InstallTraktAddon,
     LogoutTrakt,
