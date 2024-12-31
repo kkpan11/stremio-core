@@ -44,18 +44,6 @@ fn actionctx_delete_account() {
                 )
                 .boxed_env()
             }
-            Request {
-                url, method, body, ..
-            } if url == "https://api.strem.io/api/logout"
-                && method == "POST"
-                && body == "{\"type\":\"Logout\",\"authKey\":\"auth_key\"}" =>
-            {
-                future::ok(
-                    Box::new(APIResult::Ok(SuccessResponse { success: True {} }))
-                        as Box<dyn Any + Send>,
-                )
-                .boxed_env()
-            }
             _ => default_fetch_handler(request),
         }
     }
@@ -133,8 +121,8 @@ fn actionctx_delete_account() {
 
     assert_eq!(
         REQUESTS.read().unwrap().len(),
-        2,
-        "Two requests have been sent"
+        1,
+        "One request have been sent"
     );
 
     assert_eq!(
@@ -147,16 +135,5 @@ fn actionctx_delete_account() {
             ..Default::default()
         },
         "Delete account request has been sent"
-    );
-
-    assert_eq!(
-        REQUESTS.read().unwrap().get(1).unwrap().to_owned(),
-        Request {
-            url: "https://api.strem.io/api/logout".to_owned(),
-            method: "POST".to_owned(),
-            body: "{\"type\":\"Logout\",\"authKey\":\"auth_key\"}".to_owned(),
-            ..Default::default()
-        },
-        "Logout request has been sent"
     );
 }

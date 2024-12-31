@@ -21,7 +21,7 @@ pub fn update_profile<E: Env + 'static>(
     msg: &Msg,
 ) -> Effects {
     match msg {
-        Msg::Action(Action::Ctx(ActionCtx::Logout)) | Msg::Internal(Internal::Logout) => {
+        Msg::Internal(Internal::Logout(_)) => {
             let next_profile = Profile::default();
             if *profile != next_profile {
                 *profile = next_profile;
@@ -377,7 +377,7 @@ pub fn update_profile<E: Env + 'static>(
                 Err(error) => {
                     let session_expired_effects = match error {
                         CtxError::API(APIError { code, .. }) if *code == 1 => {
-                            Effects::msg(Msg::Internal(Internal::Logout)).unchanged()
+                            Effects::msg(Msg::Internal(Internal::Logout(false))).unchanged()
                         }
                         _ => Effects::none().unchanged(),
                     };
@@ -394,7 +394,7 @@ pub fn update_profile<E: Env + 'static>(
             APIRequest::DeleteAccount { auth_key, .. },
             result,
         )) if profile.auth_key() == Some(auth_key) => match result {
-            Ok(_) => Effects::msg(Msg::Internal(Internal::Logout)).unchanged(),
+            Ok(_) => Effects::msg(Msg::Internal(Internal::Logout(true))).unchanged(),
             Err(error) => Effects::msg(Msg::Event(Event::Error {
                 error: error.to_owned(),
                 source: Box::new(Event::UserAccountDeleted { uid: profile.uid() }),

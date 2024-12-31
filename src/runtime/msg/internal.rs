@@ -55,8 +55,8 @@ pub enum Internal {
     LibrarySyncPlanResult(DatastoreRequest, Result<LibraryPlanResponse, CtxError>),
     /// Result for pull library items from API.
     LibraryPullResult(DatastoreRequest, Result<Vec<LibraryItem>, CtxError>),
-    /// Dispatched when expired session is detected
-    Logout,
+    /// Dispatched when the user session needs to be cleared with a flag if the session was already deleted server-side
+    Logout(bool),
     /// Internal event dispatched on user action or login
     /// to install the addon if it's not present
     InstallTraktAddon,
