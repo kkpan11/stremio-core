@@ -41,9 +41,12 @@ mod model {
     pub struct Stream<'a> {
         #[serde(flatten)]
         pub stream: &'a stremio_core::types::resource::Stream,
-        // Watch progress percentage
+        /// Watch progress percentage
         pub progress: Option<f64>,
         pub deep_links: StreamDeepLinks,
+        /// Whether or not this is the suggested by core stream
+        /// Only 1 stream can be a suggested one!
+        pub suggested: Option<bool>,
     }
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -188,6 +191,7 @@ pub fn serialize_meta_details<E: Env + 'static>(
                                     &ctx.profile.settings,
                                 ))
                                 .into_web_deep_links(),
+                                suggested: None,
                             })
                             .collect::<Vec<_>>(),
                         in_library: ctx
@@ -276,6 +280,15 @@ pub fn serialize_meta_details<E: Env + 'static>(
                                         },
                                     )
                                     .into_web_deep_links(),
+                                suggested: meta_details.suggested_stream.as_ref().and_then(
+                                    |resource| match resource.content.as_ref() {
+                                        Some(Loadable::Ready(Some(suggested_stream))) => {
+                                            Some(suggested_stream == stream)
+                                        }
+                                        Some(Loadable::Ready(None)) => Some(false),
+                                        _ => None,
+                                    },
+                                ),
                             })
                             .collect::<Vec<_>>(),
                     ),
