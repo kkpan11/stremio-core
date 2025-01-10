@@ -1215,9 +1215,9 @@ dependencies = [
 
 [[package]]
 name = "stremio-official-addons"
-version = "2.0.12"
+version = "2.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b03b5836f294463f2ad0eeebac3bcde05dcbecfefa4fc6da2029c5e15d17ad9"
+checksum = "b3e82d97b318000ca095daa19f479fcf4569ecd0ba8e3d10e04bd1a56f768947"
 dependencies = [
  "once_cell",
  "serde_json",
