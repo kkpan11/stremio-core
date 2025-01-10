@@ -1,9 +1,10 @@
-use gloo_utils::format::JsValueSerdeExt;
-use wasm_bindgen::JsValue;
+#[cfg(feature = "wasm")]
+use {gloo_utils::format::JsValueSerdeExt, wasm_bindgen::JsValue};
 
-use stremio_core::models::ctx::Ctx;
+pub use model::*;
 
-pub fn serialize_ctx(ctx: &Ctx) -> JsValue {
+#[cfg(feature = "wasm")]
+pub fn serialize_ctx(ctx: &stremio_core::models::ctx::Ctx) -> JsValue {
     <JsValue as JsValueSerdeExt>::from_serde(&model::Ctx::from(ctx)).expect("JsValue from Ctx")
 }
 
@@ -18,6 +19,7 @@ mod model {
     use stremio_core::types::{
         events::Events, notifications::NotificationItem, profile::Profile, resource::MetaItemId,
     };
+    use url::Url;
 
     use crate::model::deep_links_ext::DeepLinksExt;
 
@@ -29,6 +31,14 @@ mod model {
         pub notifications: Notifications<'a>,
         pub search_history: Vec<SearchHistoryItem<'a>>,
         pub events: &'a Events,
+        pub streaming_server_urls: Vec<StreamingServerUrlItem>,
+    }
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct StreamingServerUrlItem {
+        pub url: Url,
+        pub mtime: DateTime<Utc>,
     }
 
     #[derive(Serialize)]
@@ -74,6 +84,16 @@ mod model {
                     })
                     .collect(),
                 events: &ctx.events,
+                streaming_server_urls: ctx
+                    .streaming_server_urls
+                    .items
+                    .iter()
+                    .map(|(url, mtime)| StreamingServerUrlItem {
+                        url: url.clone(),
+                        mtime: *mtime,
+                    })
+                    .sorted_by(|a, b| Ord::cmp(&a.mtime, &b.mtime))
+                    .collect(),
             }
         }
     }
