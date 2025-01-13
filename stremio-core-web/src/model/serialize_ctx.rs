@@ -76,9 +76,7 @@ mod model {
 
     #[derive(Serialize)]
     pub struct Auth<'a> {
-        #[serde(flatten)]
         auth: &'a stremio_core::types::profile::Auth,
-        #[serde(flatten)]
         user: User<'a>,
     }
 
