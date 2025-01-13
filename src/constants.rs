@@ -42,7 +42,7 @@ pub const NEW_USER_DAYS: i64 = 30;
 pub const WATCHED_THRESHOLD_COEF: f64 = 0.7;
 pub const CREDITS_THRESHOLD_COEF: f64 = 0.9;
 /// The latest migration scheme version
-pub const SCHEMA_VERSION: u32 = 17;
+pub const SCHEMA_VERSION: u32 = 16;
 pub const IMDB_LINK_CATEGORY: &str = "imdb";
 pub const GENRES_LINK_CATEGORY: &str = "Genres";
 pub const CINEMETA_TOP_CATALOG_ID: &str = "top";
