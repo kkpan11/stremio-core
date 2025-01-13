@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DefaultOnError, DefaultOnNull, DurationSeconds, NoneAsEmptyString};
 
 use crate::constants::NEW_USER_DAYS;
+use crate::runtime::Env;
 
 #[serde_as]
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -72,9 +73,11 @@ pub struct User {
     pub gdpr_consent: GDPRConsent,
 }
 
-pub fn is_new_user(date_registered: DateTime<Utc>) -> bool {
-    let now = Utc::now();
-    let one_month = Duration::days(NEW_USER_DAYS);
+impl User {
+    pub fn is_new_user<E: Env + 'static>(&self) -> bool {
+        let now = E::now();
+        let one_month = Duration::days(NEW_USER_DAYS);
 
-    now.signed_duration_since(date_registered) < one_month
+        now.signed_duration_since(self.date_registered) < one_month
+    }
 }

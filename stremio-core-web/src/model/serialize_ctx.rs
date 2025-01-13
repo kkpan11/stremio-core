@@ -16,12 +16,12 @@ mod model {
     use serde::Serialize;
 
     use stremio_core::deep_links::SearchHistoryItemDeepLinks;
-    use stremio_core::types::profile::is_new_user;
     use stremio_core::types::{
         events::Events, notifications::NotificationItem, resource::MetaItemId,
     };
     use url::Url;
 
+    use crate::env::WebEnv;
     use crate::model::deep_links_ext::DeepLinksExt;
 
     #[derive(Serialize)]
@@ -89,7 +89,7 @@ mod model {
                         key: auth.key.clone(),
                         user: User {
                             user: &auth.user,
-                            is_new_user: is_new_user(auth.user.date_registered),
+                            is_new_user: auth.user.is_new_user::<WebEnv>(),
                         },
                     }),
                 },
