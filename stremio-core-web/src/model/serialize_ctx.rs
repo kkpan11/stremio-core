@@ -59,14 +59,6 @@ mod model {
 
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
-    pub struct User<'a> {
-        #[serde(flatten)]
-        user: &'a stremio_core::types::profile::User,
-        is_new_user: bool,
-    }
-
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
     pub struct Profile<'a> {
         #[serde(flatten)]
         profile: &'a stremio_core::types::profile::Profile,
@@ -76,8 +68,16 @@ mod model {
 
     #[derive(Serialize)]
     pub struct Auth<'a> {
-        auth: &'a stremio_core::types::profile::Auth,
-        user: User<'a>,
+        pub key: stremio_core::types::profile::AuthKey,
+        pub user: User<'a>,
+    }
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct User<'a> {
+        #[serde(flatten)]
+        pub user: &'a stremio_core::types::profile::User,
+        pub is_new_user: bool,
     }
 
     impl<'a> From<&'a stremio_core::models::ctx::Ctx> for Ctx<'a> {
@@ -86,7 +86,7 @@ mod model {
                 profile: Profile {
                     profile: &ctx.profile,
                     auth: ctx.profile.auth.as_ref().map(|auth| Auth {
-                        auth,
+                        key: auth.key.clone(),
                         user: User {
                             user: &auth.user,
                             is_new_user: is_new_user(auth.user.date_registered),
