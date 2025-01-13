@@ -21,8 +21,7 @@ mod model {
     };
     use url::Url;
 
-    use crate::env::WebEnv;
-    use crate::model::deep_links_ext::DeepLinksExt;
+    use crate::{env::WebEnv, model::deep_links_ext::DeepLinksExt};
 
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]

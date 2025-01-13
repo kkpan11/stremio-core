@@ -34,7 +34,7 @@ pub const NOTIFICATION_ITEMS_COUNT: usize = 100;
 pub const CALENDAR_ITEMS_COUNT: usize = 100;
 
 /// Account age in days to be considered a new user
-pub const NEW_USER_DAYS: i64 = 30;
+pub const NEW_USER_DAYS: chrono::Duration = chrono::Duration::days(30);
 
 /// A `LibraryItem` is considered watched once we've watched more than the `duration * threshold`:
 ///

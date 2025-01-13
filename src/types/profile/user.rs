@@ -76,8 +76,6 @@ pub struct User {
 impl User {
     pub fn is_new_user<E: Env + 'static>(&self) -> bool {
         let now = E::now();
-        let one_month = Duration::days(NEW_USER_DAYS);
-
-        now.signed_duration_since(self.date_registered) < one_month
+        now.signed_duration_since(self.date_registered) < NEW_USER_DAYS
     }
 }
