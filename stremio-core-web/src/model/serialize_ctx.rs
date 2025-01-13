@@ -16,8 +16,9 @@ mod model {
     use serde::Serialize;
 
     use stremio_core::deep_links::SearchHistoryItemDeepLinks;
+    use stremio_core::types::profile::is_new_user;
     use stremio_core::types::{
-        events::Events, notifications::NotificationItem, profile::Profile, resource::MetaItemId,
+        events::Events, notifications::NotificationItem, resource::MetaItemId,
     };
     use url::Url;
 
@@ -26,8 +27,7 @@ mod model {
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
     pub struct Ctx<'a> {
-        /// keep the original Profile model inside.
-        pub profile: &'a Profile,
+        pub profile: Profile<'a>,
         pub notifications: Notifications<'a>,
         pub search_history: Vec<SearchHistoryItem<'a>>,
         pub events: &'a Events,
@@ -57,10 +57,44 @@ mod model {
         pub deep_links: SearchHistoryItemDeepLinks,
     }
 
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct User<'a> {
+        #[serde(flatten)]
+        user: &'a stremio_core::types::profile::User,
+        is_new_user: bool,
+    }
+
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    pub struct Profile<'a> {
+        #[serde(flatten)]
+        profile: &'a stremio_core::types::profile::Profile,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        auth: Option<Auth<'a>>,
+    }
+
+    #[derive(Serialize)]
+    pub struct Auth<'a> {
+        #[serde(flatten)]
+        auth: &'a stremio_core::types::profile::Auth,
+        #[serde(flatten)]
+        user: User<'a>,
+    }
+
     impl<'a> From<&'a stremio_core::models::ctx::Ctx> for Ctx<'a> {
         fn from(ctx: &'a stremio_core::models::ctx::Ctx) -> Self {
             Self {
-                profile: &ctx.profile,
+                profile: Profile {
+                    profile: &ctx.profile,
+                    auth: ctx.profile.auth.as_ref().map(|auth| Auth {
+                        auth,
+                        user: User {
+                            user: &auth.user,
+                            is_new_user: is_new_user(auth.user.date_registered),
+                        },
+                    }),
+                },
                 notifications: Notifications {
                     items: ctx
                         .notifications

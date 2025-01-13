@@ -6,6 +6,7 @@ use crate::constants::{
 };
 use crate::models::ctx::Ctx;
 use crate::models::streaming_server::StreamingServer;
+use crate::types::profile::is_new_user;
 use chrono::{DateTime, Utc};
 use futures::{future, Future, TryFutureExt};
 use http::Request;
@@ -276,6 +277,12 @@ pub trait Env {
                         .map_err(|error| EnvError::StorageSchemaVersionUpgrade(Box::new(error)))
                         .await?;
                     schema_version = 16;
+                }
+                if schema_version == 16 {
+                    migrate_storage_schema_to_v17::<Self>()
+                        .map_err(|error| EnvError::StorageSchemaVersionUpgrade(Box::new(error)))
+                        .await?;
+                    schema_version = 17;
                 }
                 if schema_version != SCHEMA_VERSION {
                     panic!(
@@ -636,6 +643,33 @@ fn migrate_storage_schema_to_v16<E: Env>() -> TryEnvFuture<()> {
         .boxed_env()
 }
 
+fn migrate_storage_schema_to_v17<E: Env>() -> TryEnvFuture<()> {
+    E::get_storage::<serde_json::Value>(PROFILE_STORAGE_KEY)
+        .and_then(|mut profile| {
+            if let Some(profile_obj) = profile.as_mut().and_then(|p| p.as_object_mut()) {
+                if let Some(auth) = profile_obj.get_mut("auth").and_then(|a| a.as_object_mut()) {
+                    if let Some(user) = auth.get_mut("user").and_then(|u| u.as_object_mut()) {
+                        if let Some(date_registered) = user.get("dateRegistered") {
+                            if let Ok(date) =
+                                serde_json::from_value::<DateTime<Utc>>(date_registered.clone())
+                            {
+                                user.insert(
+                                    "isNewUser".to_owned(),
+                                    serde_json::Value::Bool(is_new_user(date)),
+                                );
+                            }
+                        }
+                    }
+                }
+                E::set_storage(PROFILE_STORAGE_KEY, Some(&profile))
+            } else {
+                E::set_storage::<()>(PROFILE_STORAGE_KEY, None)
+            }
+        })
+        .and_then(|_| E::set_storage(SCHEMA_VERSION_STORAGE_KEY, Some(&17)))
+        .boxed_env()
+}
+
 #[cfg(test)]
 mod test {
     use serde_json::{json, Value};
@@ -649,9 +683,9 @@ mod test {
                 migrate_storage_schema_to_v10, migrate_storage_schema_to_v11,
                 migrate_storage_schema_to_v12, migrate_storage_schema_to_v13,
                 migrate_storage_schema_to_v14, migrate_storage_schema_to_v15,
-                migrate_storage_schema_to_v16, migrate_storage_schema_to_v6,
-                migrate_storage_schema_to_v7, migrate_storage_schema_to_v8,
-                migrate_storage_schema_to_v9,
+                migrate_storage_schema_to_v16, migrate_storage_schema_to_v17,
+                migrate_storage_schema_to_v6, migrate_storage_schema_to_v7,
+                migrate_storage_schema_to_v8, migrate_storage_schema_to_v9,
             },
             Env,
         },
