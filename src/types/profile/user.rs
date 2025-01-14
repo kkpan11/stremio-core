@@ -9,8 +9,7 @@ use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, DefaultOnError, DefaultOnNull, DurationSeconds, NoneAsEmptyString};
 
-use crate::constants::NEW_USER_DAYS;
-use crate::runtime::Env;
+use crate::{constants::NEW_USER_DAYS, runtime::Env};
 
 #[serde_as]
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
