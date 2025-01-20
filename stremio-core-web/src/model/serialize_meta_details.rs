@@ -47,7 +47,7 @@ mod model {
         /// Whether or not this is a stream the user has already played
         /// Only 1 stream can be the last used one!
         ///
-        /// Find out more about how we select it form the StreamsBucket in the core's model.
+        /// Find out more about how we select it from the StreamsBucket in the core's model.
         pub last_used: Option<bool>,
     }
     #[derive(Serialize)]
