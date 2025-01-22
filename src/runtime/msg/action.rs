@@ -117,6 +117,8 @@ pub enum ActionMetaDetails {
     ///
     /// [`LibraryItem`]: crate::types::library::LibraryItem
     MarkVideoAsWatched(Video, bool),
+    /// Mark all videos from given season as watched
+    MarkSeasonAsWatched(u32, bool),
 }
 
 #[derive(Clone, Deserialize, Debug)]
@@ -199,6 +201,8 @@ pub enum ActionPlayer {
     ///
     /// [`LibraryItem`]: crate::types::library::LibraryItem
     MarkVideoAsWatched(Video, bool),
+    /// Mark all videos from given season as watched
+    MarkSeasonAsWatched(u32, bool),
 }
 
 #[derive(Clone, Deserialize, Debug)]

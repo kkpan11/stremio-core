@@ -1,5 +1,6 @@
 use std::{borrow::Cow, marker::PhantomData};
 
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use stremio_watched_bitfield::WatchedBitField;
@@ -128,6 +129,44 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
 
                     Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(library_item)))
                         .unchanged()
+                }
+                _ => Effects::none().unchanged(),
+            },
+            Msg::Action(Action::MetaDetails(ActionMetaDetails::MarkSeasonAsWatched(
+                season,
+                is_watched,
+            ))) => match (&self.library_item, &self.watched) {
+                (Some(library_item), Some(watched)) => {
+                    // Find videos of given season from the first ready meta item loadable
+                    let videos = self
+                        .meta_items
+                        .iter()
+                        .find(|meta_item| matches!(&meta_item.content, Some(Loadable::Ready(_))))
+                        .and_then(|meta_item| meta_item.content.as_ref())
+                        .and_then(|meta_item| meta_item.ready())
+                        .map(|meta_item| {
+                            meta_item
+                                .videos
+                                .iter()
+                                .filter(|video| {
+                                    video
+                                        .series_info
+                                        .as_ref()
+                                        .is_some_and(|series_info| series_info.season == *season)
+                                })
+                                .collect_vec()
+                        });
+
+                    match videos {
+                        Some(videos) => {
+                            let mut library_item = library_item.to_owned();
+                            library_item.mark_videos_as_watched::<E>(watched, videos, *is_watched);
+
+                            Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(library_item)))
+                                .unchanged()
+                        }
+                        None => Effects::none().unchanged(),
+                    }
                 }
                 _ => Effects::none().unchanged(),
             },
