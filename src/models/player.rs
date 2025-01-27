@@ -678,7 +678,7 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
             Msg::Action(Action::Player(ActionPlayer::MarkSeasonAsWatched(season, is_watched))) => {
                 match (&self.library_item, &self.watched) {
                     (Some(library_item), Some(watched)) => {
-                        // Find videos of given season from the first ready meta item loadable
+                        // Find videos of given season from the meta item loadable
                         let videos = self
                             .meta_item
                             .as_ref()
