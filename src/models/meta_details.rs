@@ -1,6 +1,5 @@
 use std::{borrow::Cow, marker::PhantomData};
 
-use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 use stremio_watched_bitfield::WatchedBitField;
@@ -144,18 +143,7 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                         .find(|meta_item| matches!(&meta_item.content, Some(Loadable::Ready(_))))
                         .and_then(|meta_item| meta_item.content.as_ref())
                         .and_then(|meta_item| meta_item.ready())
-                        .map(|meta_item| {
-                            meta_item
-                                .videos
-                                .iter()
-                                .filter(|video| {
-                                    video
-                                        .series_info
-                                        .as_ref()
-                                        .is_some_and(|series_info| series_info.season == *season)
-                                })
-                                .collect_vec()
-                        });
+                        .map(|meta_item| meta_item.videos_by_season(*season));
 
                     match videos {
                         Some(videos) => {
