@@ -675,6 +675,37 @@ impl<E: Env + 'static> UpdateWithCtx<E> for Player {
                     _ => Effects::none().unchanged(),
                 }
             }
+            Msg::Action(Action::Player(ActionPlayer::MarkSeasonAsWatched(season, is_watched))) => {
+                match (&self.library_item, &self.watched) {
+                    (Some(library_item), Some(watched)) => {
+                        // Find videos of given season from the meta item loadable
+                        let videos = self
+                            .meta_item
+                            .as_ref()
+                            .and_then(|meta_item| meta_item.content.as_ref())
+                            .and_then(|meta_item| meta_item.ready())
+                            .map(|meta_item| meta_item.videos_by_season(*season));
+
+                        match videos {
+                            Some(videos) => {
+                                let mut library_item = library_item.to_owned();
+                                library_item.mark_videos_as_watched::<E>(
+                                    watched,
+                                    videos,
+                                    *is_watched,
+                                );
+
+                                Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(
+                                    library_item,
+                                )))
+                                .unchanged()
+                            }
+                            None => Effects::none().unchanged(),
+                        }
+                    }
+                    _ => Effects::none().unchanged(),
+                }
+            }
             Msg::Internal(Internal::LibraryChanged(_)) => {
                 let library_item_effects = library_item_update::<E>(
                     &mut self.library_item,

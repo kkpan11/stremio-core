@@ -135,6 +135,33 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                 }
                 _ => Effects::none().unchanged(),
             },
+            Msg::Action(Action::MetaDetails(ActionMetaDetails::MarkSeasonAsWatched(
+                season,
+                is_watched,
+            ))) => match (&self.library_item, &self.watched) {
+                (Some(library_item), Some(watched)) => {
+                    // Find videos of given season from the first ready meta item loadable
+                    let videos = self
+                        .meta_items
+                        .iter()
+                        .find(|meta_item| matches!(&meta_item.content, Some(Loadable::Ready(_))))
+                        .and_then(|meta_item| meta_item.content.as_ref())
+                        .and_then(|meta_item| meta_item.ready())
+                        .map(|meta_item| meta_item.videos_by_season(*season));
+
+                    match videos {
+                        Some(videos) => {
+                            let mut library_item = library_item.to_owned();
+                            library_item.mark_videos_as_watched::<E>(watched, videos, *is_watched);
+
+                            Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(library_item)))
+                                .unchanged()
+                        }
+                        None => Effects::none().unchanged(),
+                    }
+                }
+                _ => Effects::none().unchanged(),
+            },
             Msg::Internal(Internal::ResourceRequestResult(request, result))
                 if request.path.resource == META_RESOURCE_NAME =>
             {
