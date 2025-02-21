@@ -265,6 +265,19 @@ impl MetaItem {
             Either::Right(self.videos.iter().rev())
         }
     }
+
+    /// Returns a vector of videos for a given season
+    pub fn videos_by_season(&self, season: u32) -> Vec<&Video> {
+        self.videos
+            .iter()
+            .filter(|video| {
+                video
+                    .series_info
+                    .as_ref()
+                    .is_some_and(|series_info| series_info.season == season)
+            })
+            .collect_vec()
+    }
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Serialize, Deserialize, Debug)]

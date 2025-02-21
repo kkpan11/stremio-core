@@ -88,6 +88,9 @@ pub enum Event {
     UserLoggedOut {
         uid: UID,
     },
+    UserAccountDeleted {
+        uid: UID,
+    },
     SessionDeleted {
         auth_key: AuthKey,
     },
@@ -141,6 +144,12 @@ pub enum Event {
     },
     PlayingOnDevice {
         device: String,
+    },
+    StreamingServerUrlsBucketChanged {
+        uid: UID,
+    },
+    StreamingServerUrlsPushedToStorage {
+        uid: UID,
     },
     Error {
         error: CtxError,

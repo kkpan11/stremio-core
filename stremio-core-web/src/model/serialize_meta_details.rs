@@ -1,12 +1,13 @@
-use crate::{env::WebEnv, model::deep_links_ext::DeepLinksExt};
+use std::iter;
+
+use crate::model::deep_links_ext::DeepLinksExt;
 
 use either::Either;
-use gloo_utils::format::JsValueSerdeExt;
 use itertools::Itertools;
 use serde::Serialize;
-use std::iter;
 use url::Url;
-use wasm_bindgen::JsValue;
+#[cfg(feature = "wasm")]
+use {gloo_utils::format::JsValueSerdeExt, stremio_core::runtime::Env, wasm_bindgen::JsValue};
 
 use stremio_core::{
     constants::META_RESOURCE_NAME,
@@ -17,7 +18,6 @@ use stremio_core::{
         meta_details::{MetaDetails, Selected as MetaDetailsSelected},
         streaming_server::StreamingServer,
     },
-    runtime::Env,
     types::library::LibraryItem,
 };
 
@@ -41,9 +41,14 @@ mod model {
     pub struct Stream<'a> {
         #[serde(flatten)]
         pub stream: &'a stremio_core::types::resource::Stream,
-        // Watch progress percentage
+        /// Watch progress percentage
         pub progress: Option<f64>,
         pub deep_links: StreamDeepLinks,
+        /// Whether or not this is a stream the user has already played
+        /// Only 1 stream can be the last used one!
+        ///
+        /// Find out more about how we select it from the StreamsBucket in the core's model.
+        pub last_used: Option<bool>,
     }
     #[derive(Serialize)]
     #[serde(rename_all = "camelCase")]
@@ -98,7 +103,8 @@ mod model {
 /// 1. If at least 1 item is ready we show the first ready item's data
 /// 2. If all loaded resources have returned an error we show the first item's error
 /// 3. We show a loading state
-pub fn serialize_meta_details(
+#[cfg(feature = "wasm")]
+pub fn serialize_meta_details<E: Env + 'static>(
     meta_details: &MetaDetails,
     ctx: &Ctx,
     streaming_server: &StreamingServer,
@@ -150,7 +156,7 @@ pub fn serialize_meta_details(
                             .map(|video| model::Video {
                                 video,
                                 upcoming: meta_item.preview.behavior_hints.has_scheduled_videos
-                                    && video.released > Some(WebEnv::now()),
+                                    && video.released > Some(E::now()),
                                 watched: meta_details
                                     .watched
                                     .as_ref()
@@ -187,6 +193,7 @@ pub fn serialize_meta_details(
                                     &ctx.profile.settings,
                                 ))
                                 .into_web_deep_links(),
+                                last_used: None,
                             })
                             .collect::<Vec<_>>(),
                         in_library: ctx
@@ -247,7 +254,11 @@ pub fn serialize_meta_details(
                                         ctx.streams
                                             .items
                                             .values()
-                                            .find(|item| item.stream == *stream)
+                                            .find(|item| {
+                                                item.stream == *stream
+                                                    && Some(&item.video_id)
+                                                        == library_item.state.video_id.as_ref()
+                                            })
                                             .map(|_| library_item.progress())
                                     },
                                 ),
@@ -271,6 +282,15 @@ pub fn serialize_meta_details(
                                         },
                                     )
                                     .into_web_deep_links(),
+                                last_used: meta_details.last_used_stream.as_ref().and_then(
+                                    |resource| match resource.content.as_ref() {
+                                        Some(Loadable::Ready(Some(suggested_stream))) => {
+                                            Some(suggested_stream == stream)
+                                        }
+                                        Some(Loadable::Ready(None)) => Some(false),
+                                        _ => None,
+                                    },
+                                ),
                             })
                             .collect::<Vec<_>>(),
                     ),

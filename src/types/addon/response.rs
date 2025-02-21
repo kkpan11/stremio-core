@@ -3,7 +3,7 @@ use serde::{de::Deserializer, Deserialize, Serialize};
 use serde_with::{serde_as, VecSkipError};
 
 use crate::types::{
-    addon::DescriptorPreview,
+    addon::Descriptor,
     resource::{MetaItem, MetaItemPreview, Stream, Subtitles},
 };
 
@@ -13,13 +13,13 @@ use crate::types::{
 ///
 /// See <https://github.com/Stremio/stremio-addon-sdk/tree/master/docs/api/requests>
 ///
-/// - [`ResourceResponse::Metas`]`: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineCatalogHandler.md#returns>
-/// - [`ResourceResponse::MetaDetailed`]: None
-/// - [`ResourceResponse::Meta`]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineMetaHandler.md#returns>
-/// - [`ResourceResponse::Addons`]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineResourceHandler.md#returns>
-/// - [`ResourceResponse::Streams`]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineStreamHandler.md#returns>
-/// - [`ResourceResponse::Subtitles`]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineSubtitlesHandler.md#returns>
-/// -
+/// - [`ResourceResponse::Metas`][]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineCatalogHandler.md#returns>
+/// - [`ResourceResponse::MetasDetailed`][]: None
+/// - [`ResourceResponse::Meta`][]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineMetaHandler.md#returns>
+/// - [`ResourceResponse::Addons`][]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineResourceHandler.md#returns>
+/// - [`ResourceResponse::Streams`][]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineStreamHandler.md#returns>
+/// - [`ResourceResponse::Subtitles`][]: <https://github.com/Stremio/stremio-addon-sdk/blob/master/docs/api/requests/defineSubtitlesHandler.md#returns>
+///
 ///
 /// # Examples
 ///
@@ -118,7 +118,7 @@ pub enum ResourceResponse {
         subtitles: Vec<Subtitles>,
     },
     Addons {
-        addons: Vec<DescriptorPreview>,
+        addons: Vec<Descriptor>,
     },
 }
 

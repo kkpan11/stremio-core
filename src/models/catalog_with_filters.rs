@@ -7,8 +7,8 @@ use crate::models::ctx::Ctx;
 use crate::runtime::msg::{Action, ActionCatalogWithFilters, ActionLoad, Internal, Msg};
 use crate::runtime::{Effects, Env, UpdateWithCtx};
 use crate::types::addon::{
-    DescriptorPreview, ExtraExt, Manifest, ManifestCatalog, ResourcePath, ResourceRequest,
-    ResourceResponse,
+    Descriptor, DescriptorPreview, ExtraExt, Manifest, ManifestCatalog, ResourcePath,
+    ResourceRequest, ResourceResponse,
 };
 use crate::types::profile::Profile;
 use crate::types::resource::MetaItemPreview;
@@ -43,6 +43,18 @@ impl CatalogResourceAdapter for MetaItemPreview {
 }
 
 impl CatalogResourceAdapter for DescriptorPreview {
+    fn resource() -> &'static str {
+        "addon_catalog"
+    }
+    fn catalogs(manifest: &Manifest) -> &[ManifestCatalog] {
+        &manifest.addon_catalogs
+    }
+    fn selectable_priority() -> SelectablePriority {
+        SelectablePriority::Catalog
+    }
+}
+
+impl CatalogResourceAdapter for Descriptor {
     fn resource() -> &'static str {
         "addon_catalog"
     }

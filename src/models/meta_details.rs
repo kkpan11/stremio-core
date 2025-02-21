@@ -45,7 +45,11 @@ pub struct MetaDetails {
     pub meta_items: Vec<ResourceLoadable<MetaItem>>,
     pub meta_streams: Vec<ResourceLoadable<Vec<Stream>>>,
     pub streams: Vec<ResourceLoadable<Vec<Stream>>>,
-    pub suggested_stream: Option<ResourceLoadable<Option<Stream>>>,
+    /// A Stream from addon responses, based on your already watched streams on the device
+    /// (i.e. [`StreamsBucket`]), which could be played if binge watching or continuing to watch.
+    ///
+    /// Finds a proper stream for the binge watching group and matching stream source.
+    pub last_used_stream: Option<ResourceLoadable<Option<Stream>>>,
     pub library_item: Option<LibraryItem>,
     #[serde(skip_serializing)]
     pub watched: Option<WatchedBitField>,
@@ -64,8 +68,8 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                     meta_streams_update(&mut self.meta_streams, &self.selected, &self.meta_items);
                 let streams_effects =
                     streams_update::<E>(&mut self.streams, &self.selected, &ctx.profile);
-                let suggested_stream_effects = suggested_stream_update(
-                    &mut self.suggested_stream,
+                let last_used_stream_effects = last_used_stream_update(
+                    &mut self.last_used_stream,
                     &self.selected,
                     &self.meta_items,
                     &self.meta_streams,
@@ -80,14 +84,14 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                 );
                 let watched_effects =
                     watched_update(&mut self.watched, &self.meta_items, &self.library_item);
-                let libraty_item_sync_effects = library_item_sync(&self.library_item, &ctx.profile);
-                libraty_item_sync_effects
+                let library_item_sync_effects = library_item_sync(&self.library_item, &ctx.profile);
+                library_item_sync_effects
                     .join(selected_effects)
                     .join(selected_override_effects)
                     .join(meta_items_effects)
                     .join(meta_streams_effects)
                     .join(streams_effects)
-                    .join(suggested_stream_effects)
+                    .join(last_used_stream_effects)
                     .join(library_item_effects)
                     .join(watched_effects)
             }
@@ -97,13 +101,13 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                 let meta_streams_effects = eq_update(&mut self.meta_streams, vec![]);
                 let streams_effects = eq_update(&mut self.streams, vec![]);
                 let library_item_effects = eq_update(&mut self.library_item, None);
-                let suggested_stream_effects = eq_update(&mut self.suggested_stream, None);
+                let last_used_stream_effects = eq_update(&mut self.last_used_stream, None);
                 let watched_effects = eq_update(&mut self.watched, None);
                 selected_effects
                     .join(meta_items_effects)
                     .join(meta_streams_effects)
                     .join(streams_effects)
-                    .join(suggested_stream_effects)
+                    .join(last_used_stream_effects)
                     .join(library_item_effects)
                     .join(watched_effects)
             }
@@ -123,22 +127,38 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                 is_watched,
             ))) => match (&self.library_item, &self.watched) {
                 (Some(library_item), Some(watched)) => {
-                    let mut watched = watched.to_owned();
-                    watched.set_video(&video.id, *is_watched);
                     let mut library_item = library_item.to_owned();
-                    library_item.state.watched = Some(watched.into());
-                    if *is_watched {
-                        library_item.state.last_watched =
-                            match (&library_item.state.last_watched, &video.released) {
-                                (Some(last_watched), Some(released)) if last_watched < released => {
-                                    Some(released.to_owned())
-                                }
-                                (None, released) => released.to_owned(),
-                                (last_watched, _) => last_watched.to_owned(),
-                            };
-                    }
+                    library_item.mark_video_as_watched::<E>(watched, video, *is_watched);
+
                     Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(library_item)))
                         .unchanged()
+                }
+                _ => Effects::none().unchanged(),
+            },
+            Msg::Action(Action::MetaDetails(ActionMetaDetails::MarkSeasonAsWatched(
+                season,
+                is_watched,
+            ))) => match (&self.library_item, &self.watched) {
+                (Some(library_item), Some(watched)) => {
+                    // Find videos of given season from the first ready meta item loadable
+                    let videos = self
+                        .meta_items
+                        .iter()
+                        .find(|meta_item| matches!(&meta_item.content, Some(Loadable::Ready(_))))
+                        .and_then(|meta_item| meta_item.content.as_ref())
+                        .and_then(|meta_item| meta_item.ready())
+                        .map(|meta_item| meta_item.videos_by_season(*season));
+
+                    match videos {
+                        Some(videos) => {
+                            let mut library_item = library_item.to_owned();
+                            library_item.mark_videos_as_watched::<E>(watched, videos, *is_watched);
+
+                            Effects::msg(Msg::Internal(Internal::UpdateLibraryItem(library_item)))
+                                .unchanged()
+                        }
+                        None => Effects::none().unchanged(),
+                    }
                 }
                 _ => Effects::none().unchanged(),
             },
@@ -158,8 +178,8 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                 };
                 let meta_streams_effects =
                     meta_streams_update(&mut self.meta_streams, &self.selected, &self.meta_items);
-                let suggested_stream_effects = suggested_stream_update(
-                    &mut self.suggested_stream,
+                let last_used_stream_effects = last_used_stream_update(
+                    &mut self.last_used_stream,
                     &self.selected,
                     &self.meta_items,
                     &self.meta_streams,
@@ -178,7 +198,7 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                     .join(meta_items_effects)
                     .join(meta_streams_effects)
                     .join(streams_effects)
-                    .join(suggested_stream_effects)
+                    .join(last_used_stream_effects)
                     .join(library_item_effects)
                     .join(watched_effects)
             }
@@ -189,15 +209,15 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                     &mut self.streams,
                     ResourcesAction::ResourceRequestResult { request, result },
                 );
-                let suggested_stream_effects = suggested_stream_update(
-                    &mut self.suggested_stream,
+                let last_used_stream_effects = last_used_stream_update(
+                    &mut self.last_used_stream,
                     &self.selected,
                     &self.meta_items,
                     &self.meta_streams,
                     &self.streams,
                     &ctx.streams,
                 );
-                streams_effects.join(suggested_stream_effects)
+                streams_effects.join(last_used_stream_effects)
             }
             Msg::Internal(Internal::LibraryChanged(_)) => {
                 let library_item_effects = library_item_update::<E>(
@@ -217,8 +237,8 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                     meta_streams_update(&mut self.meta_streams, &self.selected, &self.meta_items);
                 let streams_effects =
                     streams_update::<E>(&mut self.streams, &self.selected, &ctx.profile);
-                let suggested_stream_effects = suggested_stream_update(
-                    &mut self.suggested_stream,
+                let last_used_stream_effects = last_used_stream_update(
+                    &mut self.last_used_stream,
                     &self.selected,
                     &self.meta_items,
                     &self.meta_streams,
@@ -236,7 +256,7 @@ impl<E: Env + 'static> UpdateWithCtx<E> for MetaDetails {
                 meta_items_effects
                     .join(meta_streams_effects)
                     .join(streams_effects)
-                    .join(suggested_stream_effects)
+                    .join(last_used_stream_effects)
                     .join(library_item_effects)
                     .join(watched_effects)
             }
@@ -269,10 +289,10 @@ fn library_item_sync(library_item: &Option<LibraryItem>, profile: &Profile) -> E
 ///
 /// 1. We find the first `MetaItem` that's successfully loaded from the addons.
 /// 2. Selecting the video id for the stream request:
-///     2.1 If there's a `MetaItem.preview.behavior_hints.default_video_id`
-///         we use it for the request
-///     2.2 If there's no `default_video_id` and no `MetaItem.videos` returned by the addon,
-///         we use the `MetaItem.preview.id`
+///    2.1 If there's a `MetaItem.preview.behavior_hints.default_video_id`
+///    we use it for the request
+///    2.2 If there's no `default_video_id` and no `MetaItem.videos` returned by the addon,
+///    we use the `MetaItem.preview.id`
 ///
 /// If we haven't found a suitable `video_id`, then we do not override the `Selected::stream_path`.
 fn selected_guess_stream_update(
@@ -441,8 +461,8 @@ fn streams_update<E: Env + 'static>(
 /// One note, why we cannot return `StreamItem.stream` directly if it's for the same episode,
 /// is that user might have played a stream from an addon which he no longer has due to some constrains (ie p2p addon),
 /// that's why we have to try to find it first and verify that's it's still available.
-fn suggested_stream_update(
-    suggested_stream: &mut Option<ResourceLoadable<Option<Stream>>>,
+fn last_used_stream_update(
+    last_used_stream: &mut Option<ResourceLoadable<Option<Stream>>>,
     selected: &Option<Selected>,
     meta_items: &[ResourceLoadable<MetaItem>],
     meta_streams: &[ResourceLoadable<Vec<Stream>>],
@@ -450,7 +470,7 @@ fn suggested_stream_update(
     stream_bucket: &StreamsBucket,
 ) -> Effects {
     let all_streams = [meta_streams, streams].concat();
-    let next_suggested_stream = match selected {
+    let next_last_used_stream = match selected {
         Some(Selected {
             stream_path: Some(stream_path),
             ..
@@ -504,7 +524,7 @@ fn suggested_stream_update(
             }),
         _ => None,
     };
-    eq_update(suggested_stream, next_suggested_stream)
+    eq_update(last_used_stream, next_last_used_stream)
 }
 
 fn library_item_update<E: Env + 'static>(

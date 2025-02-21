@@ -56,8 +56,10 @@ impl DefaultTokens for Subtitles {
         vec![
             Token::Struct {
                 name: "Subtitles",
-                len: 2,
+                len: 3,
             },
+            Token::Str("id"),
+            Token::Str(""),
             Token::Str("lang"),
             Token::Str(""),
             Token::Str("url"),
@@ -372,7 +374,7 @@ impl DefaultTokens for Settings {
         vec![
             Token::Struct {
                 name: "Settings",
-                len: 27,
+                len: 30,
             },
             Token::Str("interfaceLanguage"),
             Token::Str("eng"),
@@ -429,10 +431,16 @@ impl DefaultTokens for Settings {
             Token::U32(3000),
             Token::Str("pauseOnMinimize"),
             Token::Bool(false),
+            Token::Str("quitOnClose"),
+            Token::Bool(true),
             Token::Str("surroundSound"),
             Token::Bool(false),
             Token::Str("streamingServerWarningDismissed"),
             Token::None,
+            Token::Str("serverInForeground"),
+            Token::Bool(false),
+            Token::Str("sendCrashReports"),
+            Token::Bool(true),
             Token::StructEnd,
         ]
     }
