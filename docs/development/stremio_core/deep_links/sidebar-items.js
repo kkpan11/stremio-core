@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["error_link"],"struct":["AddonsDeepLinks","CalendarDeepLinks","CalendarItemDeepLinks","DiscoverDeepLinks","ErrorLink","ExternalPlayerLink","LibraryDeepLinks","LibraryItemDeepLinks","LocalSearchItemDeepLinks","MetaItemDeepLinks","OpenPlayerLink","SearchHistoryItemDeepLinks","StreamDeepLinks","VideoDeepLinks"]};
